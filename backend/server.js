@@ -11,6 +11,7 @@ const app = express();
 const PORT = process.env.PORT
 connectDB(); 
 // Load environment variables
+app.use(cookieParser());
 app.use(cors({
   origin: "http://localhost:5173", // React app runs here
   credentials: true
@@ -20,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 // Middleware to handle cookies
-app.use(cookieParser());
+
 // Routes
 
 app.use("/api/users", userRoutes);
