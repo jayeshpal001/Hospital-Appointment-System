@@ -1,20 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const  protect  = require("../middlewares/authMiddleware");
 const {
   bookAppointment,
+  getAppointments,
   cancelAppointment,
-  getAppointments
 } = require("../controllers/appointmentController");
 
-const  protect  = require("../middlewares/authMiddleware");
-
-// Book Appointment - Only logged-in user
-router.post("/book", protect, bookAppointment);
-
-// Cancel Appointment by ID - Only doctor or patient
-router.put("/cancel/:id", protect, cancelAppointment);
-
-// Get All Appointments for Logged-in user
+router.post("/", protect, bookAppointment);
 router.get("/", protect, getAppointments);
+router.delete("/:id", protect, cancelAppointment);
 
 module.exports = router;
