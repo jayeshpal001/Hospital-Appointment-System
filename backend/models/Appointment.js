@@ -15,9 +15,19 @@ const appointmentSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  time: {
+    type: String, // ✅ Make sure time is included and of type String
+    required: true,
+  },
   description: {
     type: String,
   },
+  status: {
+    type: String,
+    enum: ['booked', 'cancelled', 'completed'],
+    default: 'booked'
+  },
+
 }, {
   timestamps: true,
 });

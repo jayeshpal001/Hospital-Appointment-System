@@ -88,10 +88,14 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
+// Get Appointments Booked with the Logged-In Doctor
+
+
 module.exports = {
   registerUser,
   loginUser,
   getAllPatients,
   getAllDoctors, 
-  getUserProfile
+  getUserProfile, 
+  
 };

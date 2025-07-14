@@ -1,39 +1,108 @@
-import axiosInstance from "../api/axiosInstance";
 import { useState } from "react";
+import axios from "../api/axiosInstance"; // custom axios with baseURL
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "patient" });
-  const [message, setMessage] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "patient", // default role
+  });
 
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  // Handle input changes
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/users/register", form);
-      setMessage(" Registered successfully!");
-    } catch (error) {
-  console.error("Registration Error:", error); // log complete error
-  console.log("Error Response:", error.response); // important!
-  setMessage(" Registration failed: " + error.response?.data?.message || error.message);
-}
+      setError(""); // Clear old errors
+
+      const response = await axios.post("/users/register", formData, {
+        withCredentials: true, // include cookies
+      });
+
+      console.log(" Registered:", response.data);
+
+      //  Save user to localStorage
+      localStorage.setItem("userInfo", JSON.stringify(response.data.user));
+
+      //  Refresh the app to trigger navbar update
+      window.location.reload();
+
+      //  Redirect to appointments page
+      navigate("/appointments");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Registration failed");
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className="text-2xl font-bold mb-4">Register</h2>
-      {message && <p className="mb-4 text-center text-red-600">{message}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="w-full p-2 border rounded" required />
-        <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded" required />
-        <input name="password" value={form.password} onChange={handleChange} type="password" placeholder="Password" className="w-full p-2 border rounded" required />
-        <select name="role" value={form.role} onChange={handleChange} className="w-full p-2 border rounded">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center text-blue-600">
+          Register
+        </h2>
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded-md"
+          required
+        />
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded-md"
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Create Password"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded-md"
+          required
+        />
+
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded-md"
+        >
           <option value="patient">Patient</option>
           <option value="doctor">Doctor</option>
         </select>
-        <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Register</button>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+        >
+          Register
+        </button>
       </form>
     </div>
   );
