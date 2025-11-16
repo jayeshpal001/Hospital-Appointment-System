@@ -2,12 +2,8 @@ import { useState } from "react";
 import axios from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+export default function Login() {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -20,66 +16,81 @@ const Login = () => {
     e.preventDefault();
     try {
       setError("");
-
       const res = await axios.post("/users/login", formData, {
         withCredentials: true,
       });
 
-      console.log("✅ Login success", res.data);
-
-      //  Save user info in localStorage
       localStorage.setItem("userInfo", JSON.stringify(res.data.user));
 
-      //  Refresh the app to re-render Navbar
-      window.location.reload();
+      if (res.data.user.role !== "doctor") navigate("/appointments");
+      else navigate("/doctor/appointments");
 
-      //  Redirect after login
-      navigate("/appointments");
+      window.location.reload();
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-center text-blue-600">Login</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md border border-blue-200">
+        {/* Heading */}
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-3">Welcome Back</h2>
+        <p className="text-center text-gray-500 mb-6 text-sm">Login to continue to your dashboard</p>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm bg-red-50 p-2 rounded-md text-center mb-3 border border-red-200">
+            {error}
+          </p>
+        )}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full px-4 py-2 border rounded-md"
-          required
-        />
+        {/* Form */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-gray-600 text-sm">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 mt-1 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              required
+            />
+          </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full px-4 py-2 border rounded-md"
-          required
-        />
+          <div>
+            <label className="text-gray-600 text-sm">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-2 mt-1 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-        >
-          Login
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md"
+          >
+            Login
+          </button>
+
+          {/* Register Redirect */}
+          <p className="text-center text-sm text-gray-600 mt-4">
+            Don't have an account?{' '}
+            <span
+              onClick={() => navigate('/register')}
+              className="text-blue-600 hover:underline font-medium cursor-pointer"
+            >
+              Register
+            </span>
+          </p>
+        </form>
+      </div>
     </div>
   );
-};
-
-export default Login;
+}

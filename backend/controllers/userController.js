@@ -10,6 +10,7 @@ const getUserProfile = (req, res)=>{
     res.status(200).json({user: req.user}); 
 }
 
+
 // Register User Controller
 const registerUser = async (req, res) => {
   try {
@@ -60,6 +61,7 @@ const loginUser = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        role: user.role,
         email: user.email,
       },
     });

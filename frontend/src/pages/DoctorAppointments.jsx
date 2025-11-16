@@ -70,6 +70,9 @@ const handleComplete = async (id) => {
             <p>
               <strong>Time:</strong> {appt.time}
             </p>
+            <p>
+              <strong>Status:</strong> {appt.status}
+            </p>
             {appt.status === "booked" && (
               <div className="flex gap-3 mt-2">
                 <button

@@ -10,11 +10,11 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("/users/profile"); // GET /api/users/profile
+        const res = await axios.get("/users/profile");
         setUser(res.data.user);
       } catch (error) {
         console.error(" Auth Error:", error.response?.data?.message);
-        navigate("/login"); // Redirect to login if unauthenticated
+        navigate("/login"); 
       }
     };
 
