@@ -19,7 +19,7 @@ const Appointments = () => {
   };
 const handleCancel = async (id) => {
   try {
-    await axios.delete(`http://localhost:5000/api/appointments/${id}`, {
+    await axios.delete(`/api/appointments/${id}`, {
       withCredentials: true,
     });
     alert("Appointment cancelled");

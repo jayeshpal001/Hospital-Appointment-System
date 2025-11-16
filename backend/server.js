@@ -12,13 +12,22 @@ const PORT = process.env.PORT
 connectDB(); 
 // Load environment variables
 app.use(cookieParser());
-app.use(cors({
-  origin: "http://localhost:5173", // React app runs here
-  credentials: true
-}));
 
-// Middleware to parse JSON request body
+app.set("trust proxy", 1);
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://hospital-appointment-system-frontend.onrender.com",
+      "https://hospital-appointment-system-2-e5li.onrender.com"
+    ],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+
 
 // Middleware to handle cookies
 
