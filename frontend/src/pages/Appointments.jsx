@@ -8,7 +8,9 @@ const Appointments = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await axios.get("/appointments/my"); // Protected route
+      const res = await axios.get("/appointments/my",{
+        withCredentials: true
+      }); // Protected route
       setAppointments(res.data);
     } catch (error) {
       console.error("Error fetching appointments", error);

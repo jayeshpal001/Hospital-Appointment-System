@@ -15,16 +15,12 @@ app.use(cookieParser());
 
 app.set("trust proxy", 1);
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://hospital-appointment-system-frontend.onrender.com",
-      "https://hospital-appointment-system-2-e5li.onrender.com"
-    ],
-    credentials: true,
-  })
-);
+//  CORS config
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 
 app.use(express.json());
 
