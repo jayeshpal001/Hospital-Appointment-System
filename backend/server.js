@@ -13,7 +13,7 @@ connectDB();
 // Load environment variables
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // React app runs here
+  origin: true, // React app runs here
   credentials: true
 }));
 
@@ -27,7 +27,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-// CORS setup for frontend-backend connection
+
 
 
 // Default route

@@ -34,11 +34,13 @@ const Register = () => {
       //  Save user to localStorage
       localStorage.setItem("userInfo", JSON.stringify(response.data.user));
 
+        //  Redirect to appointments page
+      navigate("/appointments");
+
       //  Refresh the app to trigger navbar update
       window.location.reload();
 
-      //  Redirect to appointments page
-      navigate("/appointments");
+    
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Registration failed");

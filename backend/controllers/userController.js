@@ -10,6 +10,7 @@ const getUserProfile = (req, res)=>{
     res.status(200).json({user: req.user}); 
 }
 
+
 // Register User Controller
 const registerUser = async (req, res) => {
   try {
@@ -60,6 +61,7 @@ const loginUser = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        role: user.role,
         email: user.email,
       },
     });
@@ -88,12 +90,33 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
-// Get Appointments Booked with the Logged-In Doctor
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: true,      
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully."
+    });
+    
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error logging out.",
+      error: error.message
+    });
+  }
+};
 
 
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser, 
   getAllPatients,
   getAllDoctors, 
   getUserProfile, 

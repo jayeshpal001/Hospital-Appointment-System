@@ -16,7 +16,7 @@ const appointmentSchema = new mongoose.Schema({
     required: true,
   },
   time: {
-    type: String, // ✅ Make sure time is included and of type String
+    type: String, 
     required: true,
   },
   description: {

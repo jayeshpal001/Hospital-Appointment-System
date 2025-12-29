@@ -9,6 +9,7 @@ const Login = () => {
   });
 
   const [error, setError] = useState("");
+ 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -25,16 +26,20 @@ const Login = () => {
         withCredentials: true,
       });
 
-      console.log("✅ Login success", res.data);
+      console.log(" Login success", res.data);
+      
 
       //  Save user info in localStorage
       localStorage.setItem("userInfo", JSON.stringify(res.data.user));
 
+      if(res.data.user.role!=="doctor") navigate("/appointments");
+      else navigate("/doctor/appointments")
+      
       //  Refresh the app to re-render Navbar
       window.location.reload();
 
       //  Redirect after login
-      navigate("/appointments");
+     
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Login failed");

@@ -55,12 +55,15 @@ const handleCancel = async (id) => {
             <p>
               <strong>Time:</strong> {appt.time}
             </p>
-            <button
+             <p>
+              <strong>Status:</strong> {appt.status}
+            </p>
+            {appt.status==="booked"&& <button
               onClick={() => handleCancel(appt._id)}
               className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
             >
               Cancel Appointment
-            </button>
+            </button>}
           </div>
         ))
       )}
