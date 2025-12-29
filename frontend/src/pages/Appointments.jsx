@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "../api/axiosInstance"; // ← If you set one
+import axios from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
@@ -8,7 +8,9 @@ const Appointments = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await axios.get("/appointments/my"); // Protected route
+      const res = await axios.get("/appointments/my",{
+        withCredentials: true
+      }); // Protected route
       setAppointments(res.data);
     } catch (error) {
       console.error("Error fetching appointments", error);
@@ -19,7 +21,7 @@ const Appointments = () => {
   };
 const handleCancel = async (id) => {
   try {
-    await axios.delete(`http://localhost:5000/api/appointments/${id}`, {
+    await axios.delete(`/api/appointments/${id}`, {
       withCredentials: true,
     });
     alert("Appointment cancelled");

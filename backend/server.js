@@ -12,13 +12,17 @@ const PORT = process.env.PORT
 connectDB(); 
 // Load environment variables
 app.use(cookieParser());
+
+app.set("trust proxy", 1);
+
+//  CORS config
 app.use(cors({
   origin: true, // React app runs here
   credentials: true
 }));
 
-// Middleware to parse JSON request body
 app.use(express.json());
+
 
 // Middleware to handle cookies
 
@@ -26,6 +30,7 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
+
 
 
 

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+<<<<<<< HEAD
 import axiosInstance from "../api/axiosInstance";
+=======
+>>>>>>> 1447434633a0b35c79863834a7e5329f354f67bc
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -37,16 +40,33 @@ const Navbar = () => {
         : "hover:bg-white/10"
     }`;
 
+  // Function to apply active style
+  const linkClass = (path) =>
+    `relative px-3 py-2 rounded-md text-sm font-medium transition duration-200 ${
+      location.pathname === path
+        ? "bg-white/20 text-yellow-300 shadow-sm"
+        : "hover:bg-white/10"
+    }`;
+
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
+<<<<<<< HEAD
         <Link
           to="/"
           className="text-2xl font-bold tracking-wide flex items-center gap-2"
         >
            <span>HospitalSys</span>
         </Link>
+=======
+        <h1
+         
+          className="text-2xl font-bold tracking-wide flex items-center gap-2"
+        >
+           <span>HospitalSys</span>
+        </h1>
+>>>>>>> 1447434633a0b35c79863834a7e5329f354f67bc
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-4">
@@ -80,7 +100,11 @@ const Navbar = () => {
                 </Link>
               ) : (
                 <Link to="/doctors" className={linkClass("/doctors")}>
+<<<<<<< HEAD
                   Doctors 
+=======
+                  Doctors
+>>>>>>> 1447434633a0b35c79863834a7e5329f354f67bc
                 </Link>
               )}
 
