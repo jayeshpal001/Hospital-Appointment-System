@@ -13,12 +13,13 @@ const generateToken = (userId, userRole, res) => {
   );
 
 
-   res.cookie("token", jwtToken, {
-        httpOnly: true, 
-        secure: true, 
-        sameSite: "None", 
-        maxAge: 7*24*60*60*1000
-    })
+res.cookie("token", jwtToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",   
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
 
   return jwtToken;
 };
