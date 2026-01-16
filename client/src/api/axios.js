@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 // Request Interceptor: Har request ke sath Token jod dega
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
