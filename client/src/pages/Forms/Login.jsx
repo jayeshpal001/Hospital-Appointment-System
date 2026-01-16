@@ -22,7 +22,7 @@ const Login = ({ onToggle }) => {
       
       showToast("success", "Welcome Back! Login Successful.");
       console.log(res.data);
-        if (res.data.user.role) {
+        if (res.data.user.role==="patient") {
         navigate("/findDoctors")
       }
       else{
