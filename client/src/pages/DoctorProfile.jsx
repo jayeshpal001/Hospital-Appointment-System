@@ -9,6 +9,7 @@ import {
 
 // Import your reusable toast components
 import { CustomToaster, showToast } from "../components/ui/Form"; 
+import api from "../api/axios";
 
 const DoctorProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -20,7 +21,7 @@ const DoctorProfile = () => {
       try {
         await new Promise(r => setTimeout(r, 1000)); // Fake smooth delay
 
-        const res = await axios.get("http://localhost:5000/api/user/doctorProfile", {
+        const res = await api.get("/user/doctorProfile", {
           withCredentials: true,
         });
 

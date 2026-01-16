@@ -6,6 +6,7 @@ import {
   FaTimesCircle, FaHourglassHalf, FaStethoscope, FaTint, FaFileMedicalAlt, FaBan 
 } from "react-icons/fa";
 import { CustomToaster, showToast } from "../components/ui/Form";
+import api from "../api/axios";
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
@@ -14,7 +15,7 @@ const Dashboard = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/appointment/my-appointments", {
+      const res = await api.get("/appointment/my-appointments", {
         withCredentials: true,
       });
 
@@ -37,7 +38,7 @@ const Dashboard = () => {
 
   const handleStatus = async (id, status) => {
     try {
-        const res = await axios.put("http://localhost:5000/api/appointment/status", 
+        const res = await axios.put("/appointment/status", 
             { appointmentId: id, status },
             { withCredentials: true }
         );

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 // 1. Added GlassSelect to imports
 import { GlassInput, GlassTimePicker, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
+import api from "../../api/axios";
 
 const DoctorDetail = ({ onBack }) => {
   const { register, control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
@@ -47,8 +48,8 @@ const DoctorDetail = ({ onBack }) => {
     try {
         await new Promise(r => setTimeout(r, 1000)); 
 
-        const res = await axios.post(
-            "http://localhost:5000/api/user/doctorData", 
+        const res = await api.post(
+            "/user/doctorData", 
             {
                 ...data,
                 experience: Number(data.experience),

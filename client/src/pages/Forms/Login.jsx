@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaUser, FaLock } from "react-icons/fa";
 import { GlassInput, GradientButton, showToast  } from "../../components/ui/Form";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 
 // Import UI components and the custom 'showToast' function
 // import { GlassInput, GradientButton, showToast } from "../../components/ui/Form/FormComponents"; 
@@ -13,7 +14,7 @@ const Login = ({ onToggle }) => {
   const navigate = useNavigate()
   const onSubmit = async (data) => {
     try {    
-      const res = await axios.post("http://localhost:5000/api/auth/login", data, { withCredentials: true });
+      const res = await api.post("/auth/login", data, { withCredentials: true });
       
       // UPGRADE: Premium Toast Notification
       localStorage.setItem("role", res.data.user.role);

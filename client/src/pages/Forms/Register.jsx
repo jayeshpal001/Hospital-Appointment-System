@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { FaUser, FaLock, FaEnvelope, FaUserMd } from "react-icons/fa";
 import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
+import api from "../../api/axios";
 
 // Import UI components and the custom 'showToast' function
 // import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form/FormComponents";
@@ -18,7 +19,7 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
     try {
       // Actual API Call
      await new Promise(r => setTimeout(r, 1000));
-      const res = await axios.post("http://localhost:5000/api/auth/register", data, { withCredentials: true });
+      const res = await api.post("/auth/register", data, { withCredentials: true });
       
       if (res.data.success) {
         if (data.role === "doctor") {

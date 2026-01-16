@@ -10,6 +10,7 @@ import {
 // Import your reusable toast components
 import { CustomToaster, showToast } from "../components/ui/Form"; 
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -23,7 +24,7 @@ const PatientProfile = () => {
         await new Promise(r => setTimeout(r, 1000)); // Smooth delay
 
         // Make sure this route exists in your backend
-        const res = await axios.get("http://localhost:5000/api/user/patientProfile", {
+        const res = await api.get("/user/patientProfile", {
           withCredentials: true,
         });
 

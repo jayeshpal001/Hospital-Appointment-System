@@ -6,6 +6,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import { showToast } from "./Form";
+import api from "../../api/axios";
 
 
 const FloatingNav = () => {
@@ -25,7 +26,7 @@ const FloatingNav = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/logout");
+      await api.post("/auth/logout");
       localStorage.removeItem("role");
       showToast("success", "Logged out successfully");
       navigate("/");

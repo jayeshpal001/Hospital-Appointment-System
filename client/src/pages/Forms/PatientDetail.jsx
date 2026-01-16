@@ -7,6 +7,7 @@ import {
 
 import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 
 const PatientDetail = ({ onBack }) => {
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
@@ -30,8 +31,8 @@ const PatientDetail = ({ onBack }) => {
         await new Promise(r => setTimeout(r, 1000)); // Smooth Fake Delay
 
         // ACTUAL API CALL
-        const res = await axios.post(
-            "http://localhost:5000/api/user/patientData", 
+        const res = await api.post(
+            "/user/patientData", 
             {
                 ...data,
                 age: Number(data.age),

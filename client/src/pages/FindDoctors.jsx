@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { FaUserMd, FaStethoscope, FaMapMarkerAlt, FaStar, FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { CustomToaster } from "../components/ui/Form";
+import api from "../api/axios";
 
 const FindDoctors = () => {
   const [doctors, setDoctors] = useState([]);
@@ -14,7 +15,7 @@ const FindDoctors = () => {
     const fetchDoctors = async () => {
       try {
         await new Promise(r => setTimeout(r, 800)); // Smooth entry
-        const res = await axios.get("http://localhost:5000/api/public/doctors", { withCredentials: true });
+        const res = await api.get("/public/doctors", { withCredentials: true });
         if (res.data.success) {
           setDoctors(res.data.doctors);
         }

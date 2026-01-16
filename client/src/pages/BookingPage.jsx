@@ -7,6 +7,7 @@ import {
   FaMoneyBillWave, FaArrowLeft, FaNotesMedical, FaCalendarCheck 
 } from "react-icons/fa";
 import { CustomToaster, showToast, GradientButton } from "../components/ui/Form";
+import api from "../api/axios";
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -25,7 +26,7 @@ const BookingPage = () => {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/public/doctor/${id}`, { withCredentials: true });
+        const res = await api.get(`/public/doctor/${id}`, { withCredentials: true });
         if (res.data.success) {
           setDoctor(res.data.doctor);
         }
@@ -78,7 +79,7 @@ const BookingPage = () => {
         reason: reason || "General Consultation"
       };
 
-      const res = await axios.post("http://localhost:5000/api/appointment/book", payload, { withCredentials: true });
+      const res = await api.post("/appointment/book", payload, { withCredentials: true });
 
       if (res.data.success) {
         showToast("success", "Appointment Booked Successfully!");
