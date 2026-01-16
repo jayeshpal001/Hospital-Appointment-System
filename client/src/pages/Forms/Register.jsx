@@ -24,6 +24,7 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
       if (res.data.success) {
         if (data.role === "doctor") {
             showToast("success", "Account created! Setting up Doctor Profile...");
+            localStorage.setItem("token", res.data.token);
             localStorage.setItem("role", data.role);
             onDoctorSuccess(data);
         } 

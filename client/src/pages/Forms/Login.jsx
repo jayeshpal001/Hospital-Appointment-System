@@ -19,7 +19,7 @@ const Login = ({ onToggle }) => {
       // UPGRADE: Premium Toast Notification
       localStorage.setItem("role", res.data.user.role);
     
-      
+      localStorage.setItem("token", res.data.token);
       showToast("success", "Welcome Back! Login Successful.");
       console.log(res.data);
         if (res.data.user.role==="patient") {

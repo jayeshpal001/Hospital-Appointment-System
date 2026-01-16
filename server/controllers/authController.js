@@ -17,10 +17,11 @@ exports.loginController =  async (req, res) => {
                 message: "Invalid Passoword"
             })
         }
-         generateToken(user._id, user.role , res); 
+       const token =  generateToken(user._id, user.role , res); 
         res.status(200).json({
             message: "Register Successfull", 
-            user
+            user, 
+            token
         })
 
     } catch (error) {
