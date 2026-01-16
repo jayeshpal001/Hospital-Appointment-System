@@ -15,35 +15,32 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
 
   const roleValue = watch("role"); // Watch value to update Select UI
 
-  const onSubmit = async (data) => {
-    try {
-      // Actual API Call
-     await new Promise(r => setTimeout(r, 1000));
-      const res = await api.post("/auth/register", data);
-      
-      if (res.data.success) {
-        if (data.role === "doctor") {
-            showToast("success", "Account created! Setting up Doctor Profile...");
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("role", data.role);
-            onDoctorSuccess(data);
-        } 
-        else if (data.role === "patient") {
-            showToast("success", "Account created! Setting up Patient Profile...");
-             localStorage.setItem("role", data.role);
-            onPatientSuccess(data); 
-        } 
-        else {
-            showToast("success", "Registration Successful!");
-            onToggle();
-        }
+ const onSubmit = async (data) => {
+  try {
+    const res = await api.post("/auth/register", data);
+
+    if (res.data?.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", data.role);
+
+      if (data.role === "doctor") {
+        showToast("success", "Account created! Setting up Doctor Profile...");
+        onDoctorSuccess(data);
+      } else {
+        showToast("success", "Account created! Setting up Patient Profile...");
+        onPatientSuccess(data);
       }
-    } catch (error) {
-      console.error(error);
-      const errorMsg = error.response?.data?.message || "Registration Failed. Please try again.";
-      showToast("error", errorMsg);
     }
-  };
+  } catch (error) {
+    const errorMsg =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Registration Failed. Please try again.";
+
+    showToast("error", errorMsg);
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center w-full px-10 h-full justify-center">

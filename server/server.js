@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
@@ -6,7 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
-require("dotenv").config();
+
 
 const app = express();
 app.set("trust proxy", 1);
@@ -15,7 +16,8 @@ app.use(express.json());
 app.use(
   cors({
     origin: process.env.CLIENT_URL, 
-    credentials: true
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
