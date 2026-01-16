@@ -36,7 +36,7 @@ const Dashboard = () => {
 
   const handleStatus = async (id, status) => {
     try {
-        const res = await axios.put("/appointment/status", 
+        const res = await api.put("/appointment/status", 
             { appointmentId: id, status }
         );
         if(res.data.success) {
