@@ -15,9 +15,7 @@ const Dashboard = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await api.get("/appointment/my-appointments", {
-        withCredentials: true,
-      });
+      const res = await api.get("/appointment/my-appointments");
 
       if (res.data.success) {
         setAppointments(res.data.data);
@@ -39,8 +37,7 @@ const Dashboard = () => {
   const handleStatus = async (id, status) => {
     try {
         const res = await axios.put("/appointment/status", 
-            { appointmentId: id, status },
-            { withCredentials: true }
+            { appointmentId: id, status }
         );
         if(res.data.success) {
             showToast("success", `Appointment ${status}`);

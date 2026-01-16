@@ -56,7 +56,7 @@ const DoctorDetail = ({ onBack }) => {
                 age: Number(data.age),
                 consultationFee: Number(data.consultationFee)
             },
-            { withCredentials: true }
+            
         );
 
         console.log(res.data);

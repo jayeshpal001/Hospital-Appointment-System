@@ -24,9 +24,7 @@ const PatientProfile = () => {
         await new Promise(r => setTimeout(r, 1000)); // Smooth delay
 
         // Make sure this route exists in your backend
-        const res = await api.get("/user/patientProfile", {
-          withCredentials: true,
-        });
+        const res = await api.get("/user/patientProfile");
 
         if (res.data.success) {
           setProfile(res.data.patient);

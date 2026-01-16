@@ -19,7 +19,7 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
     try {
       // Actual API Call
      await new Promise(r => setTimeout(r, 1000));
-      const res = await api.post("/auth/register", data, { withCredentials: true });
+      const res = await api.post("/auth/register", data);
       
       if (res.data.success) {
         if (data.role === "doctor") {

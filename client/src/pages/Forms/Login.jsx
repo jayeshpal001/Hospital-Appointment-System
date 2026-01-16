@@ -14,7 +14,7 @@ const Login = ({ onToggle }) => {
   const navigate = useNavigate()
   const onSubmit = async (data) => {
     try {    
-      const res = await api.post("/auth/login", data, { withCredentials: true });
+      const res = await api.post("/auth/login", data);
       
       // UPGRADE: Premium Toast Notification
       localStorage.setItem("role", res.data.user.role);

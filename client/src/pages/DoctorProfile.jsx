@@ -21,9 +21,7 @@ const DoctorProfile = () => {
       try {
         await new Promise(r => setTimeout(r, 1000)); // Fake smooth delay
 
-        const res = await api.get("/user/doctorProfile", {
-          withCredentials: true,
-        });
+        const res = await api.get("/user/doctorProfile");
 
         if (res.data.success) {
           setProfile(res.data.doctor);

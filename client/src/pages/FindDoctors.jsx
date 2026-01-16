@@ -15,7 +15,7 @@ const FindDoctors = () => {
     const fetchDoctors = async () => {
       try {
         await new Promise(r => setTimeout(r, 800)); // Smooth entry
-        const res = await api.get("/public/doctors", { withCredentials: true });
+        const res = await api.get("/public/doctors");
         if (res.data.success) {
           setDoctors(res.data.doctors);
         }

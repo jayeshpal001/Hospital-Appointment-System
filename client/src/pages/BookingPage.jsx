@@ -26,7 +26,7 @@ const BookingPage = () => {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const res = await api.get(`/public/doctor/${id}`, { withCredentials: true });
+        const res = await api.get(`/public/doctor/${id}`);
         if (res.data.success) {
           setDoctor(res.data.doctor);
         }
@@ -79,7 +79,7 @@ const BookingPage = () => {
         reason: reason || "General Consultation"
       };
 
-      const res = await api.post("/appointment/book", payload, { withCredentials: true });
+      const res = await api.post("/appointment/book", payload);
 
       if (res.data.success) {
         showToast("success", "Appointment Booked Successfully!");

@@ -36,8 +36,7 @@ const PatientDetail = ({ onBack }) => {
             {
                 ...data,
                 age: Number(data.age),
-            },
-            { withCredentials: true }
+            }
         );
 
         console.log(res.data);
