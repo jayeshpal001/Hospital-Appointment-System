@@ -9,6 +9,7 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 require("dotenv").config();
 
 const app = express();
+app.set("trust proxy", 1);
 dbConnect();
 app.use(express.json());
 app.use(
