@@ -2,7 +2,8 @@ import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import FloatingNav from './components/ui/FloatingNav'
-import { ProtectedRoute, PublicRoute } from './components/AuthGuard'
+// import { ProtectedRoute, PublicRoute } from './components/AuthGuard'
+
 // Pages
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/Forms/Auth'
@@ -12,6 +13,7 @@ import BookingPage from './pages/BookingPage'
 import DoctorProfile from './pages/DoctorProfile'
 import PatientProfile from './pages/PatientProfile'
 import DoctorDetail from './pages/Forms/DoctorDetail'
+import { ProtectedRoute, PublicRoute } from './components/ui/AuthGuard'
 
 const App = () => {
   return (
