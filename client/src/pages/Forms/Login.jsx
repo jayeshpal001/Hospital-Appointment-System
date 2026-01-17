@@ -6,28 +6,20 @@ import { GlassInput, GradientButton, showToast  } from "../../components/ui/Form
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-// Import UI components and the custom 'showToast' function
-// import { GlassInput, GradientButton, showToast } from "../../components/ui/Form/FormComponents"; 
-
 const Login = ({ onToggle }) => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
   const navigate = useNavigate()
   const onSubmit = async (data) => {
     try {    
       const res = await api.post("/auth/login", data);
-      
-      // 1. Save Token & Role
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
-
-      // 2. CRITICAL FIX: Save User ID for Socket.io
-      // Ye line bahot zaroori hai, iske bina notification nahi aayega
       localStorage.setItem("userId", res.data.user._id); 
 
       showToast("success", "Welcome Back! Login Successful.");
       console.log(res.data);
-      
-      // 3. Navigation Logic (Thoda delay taaki storage set ho jaye)
+
       if (res.data.user.role === "patient") {
         navigate("/findDoctors");
       } else {

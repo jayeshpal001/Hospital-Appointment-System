@@ -6,25 +6,17 @@ const Patient = require("../models/Patient");
 const bookAppointment = async (req, res) => {
   try {
     const { doctorId, appointmentDate, slot, reason } = req.body;
-    const userId = req.user.id; // Logged in User ID
+    const userId = req.user.id; 
 
-    // A. Find Patient Profile
+    // A. Find Patient
     const patient = await Patient.findOne({ userId });
-    if (!patient) {
-      return res.status(404).json({
-        success: false,
-        message: "Patient profile not found. Please complete your profile first.",
-      });
-    }
+    if (!patient) return res.status(404).json({ success: false, message: "Patient not found." });
 
-    // B. Find Doctor & Get Info
-    //  Populate userId taaki Doctor ko Real-time notify kar sakein
+    // B. Find Doctor (Populate userId for Socket)
     const doctor = await Doctor.findById(doctorId).populate("userId"); 
-    if (!doctor) {
-      return res.status(404).json({ success: false, message: "Doctor not found" });
-    }
+    if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
 
-    // C. Double Booking Check
+    // C. Check Slot
     const isSlotTaken = await Appointment.findOne({
       doctorId,
       appointmentDate,
@@ -32,15 +24,10 @@ const bookAppointment = async (req, res) => {
       status: { $ne: "cancelled" },
     });
 
-    if (isSlotTaken) {
-      return res.status(400).json({
-        success: false,
-        message: "This time slot is already booked. Please choose another.",
-      });
-    }
+    if (isSlotTaken) return res.status(400).json({ success: false, message: "Slot already booked." });
 
-    // D. Create Appointment
-    const newAppointment = await Appointment.create({
+    // D. Create Appointment (Raw Data)
+    let newAppointment = await Appointment.create({
       doctorId,
       patientId: patient._id,
       appointmentDate,
@@ -50,20 +37,37 @@ const bookAppointment = async (req, res) => {
       status: "pending",
     });
 
-    // BONUS: Notify Doctor in Real-Time
+    // 🔥 STEP E: POPULATE DATA (Ye nayi line hai jo card dikhayegi) 🔥
+    // Hum usi appointment ko wapas dhoond kar poora data bhar rahe hain
+    const fullAppointment = await Appointment.findById(newAppointment._id)
+      .populate({
+        path: "patientId",
+        select: "gender age bloodGroup medicalHistory", 
+        populate: { path: "userId", select: "name email" } // Patient Name
+      })
+      .populate({
+        path: "doctorId",
+        select: "specialization address",
+        populate: { path: "userId", select: "name" }
+      });
+
+    // F. Notify Doctor (USING SAME OLD EVENT NAME)
     const io = req.app.get("io");
     if (doctor.userId) {
+        console.log("📢 Emitting status-updated to Doctor:", doctor.userId._id);
+        
+        // Hum event name 'status-updated' hi rakhenge taaki notification fail na ho
         io.to(doctor.userId._id.toString()).emit("status-updated", {
-            message: `New Appointment Request from ${req.user.name || "a patient"}`,
-            appointmentId: newAppointment._id,
-            status: "pending" // Doctor list refresh karega
+            message: `New Appointment Request from ${req.user.name || "a Patient"}`,
+            appointment: fullAppointment, // 👈 Ab ye Poora Object hai!
+            isNew: true // 👈 Ye flag batayega ki ye naya hai
         });
     }
 
     res.status(201).json({
       success: true,
       message: "Appointment booked successfully!",
-      appointment: newAppointment,
+      appointment: fullAppointment, // Response me bhi full data
     });
 
   } catch (error) {

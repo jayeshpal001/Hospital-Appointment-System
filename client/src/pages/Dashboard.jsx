@@ -46,6 +46,8 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAppointments();
   }, []);
+  
+
   useEffect(() => {
     // 1. Connection Options (Auto-reconnect on)
     const socket = io(ENDPOINT, {
@@ -54,9 +56,8 @@ const Dashboard = () => {
       transports: ["websocket"], // Force WebSocket for better speed
     });
 
-    // 2. CONNECT EVENT (Sabse Important Fix 🛠️)
     socket.on("connect", () => {
-      console.log("✅ Frontend Socket Connected ID:", socket.id);
+      console.log("Frontend Socket Connected ID:", socket.id);
 
       // LocalStorage se User ID nikalo
       const userId = localStorage.getItem("userId");
@@ -64,32 +65,48 @@ const Dashboard = () => {
       if (userId) {
         // Server ko batao: "Main ye user hoon, mujhe mere room me daalo"
         socket.emit("join-room", userId);
-        console.log("📤 Sent join-room request for:", userId);
+        console.log(" Sent join-room request for:", userId);
       } else {
-        console.warn("⚠️ User ID not found in LocalStorage! Cannot join room.");
+        console.warn("User ID not found in LocalStorage! Cannot join room.");
       }
     });
 
     // 3. LISTEN FOR UPDATES
+   // 🟢 SMART LISTENER (Handles Both New & Updates)
     socket.on("status-updated", (data) => {
-      console.log("🔔 Notification Received:", data);
+        console.log("🔔 Data Received:", data);
+        showToast("info", data.message);
 
-      showToast("info", data.message); // Toast dikhao
+        setAppointments((prev) => {
+            // Step 1: Check karein ki kya ye appointment list me pehle se hai?
+            const exists = prev.some(appt => appt._id === data.appointmentId || appt._id === data.appointment?._id);
 
-      // State Update (List refresh karo)
-      setAppointments((prev) =>
-        prev.map((appt) =>
-          appt._id === data.appointmentId
-            ? { ...appt, status: data.status }
-            : appt,
-        ),
-      );
+            if (exists) {
+                // CASE A: Purana Card hai -> Sirf Status Update karo
+                console.log("🔄 Updating Existing Status");
+                return prev.map((appt) => {
+                    // ID match hone par status badal do
+                    if (appt._id === data.appointmentId || appt._id === data.appointment?._id) {
+                        return { ...appt, status: data.status };
+                    }
+                    return appt;
+                });
+            } else {
+                // CASE B: List me nahi hai + Full Data aaya hai -> Naya Card Add karo
+                if (data.appointment) {
+                    console.log("➕ Adding New Card");
+                    return [data.appointment, ...prev];
+                }
+                
+                // Agar data hi nahi hai to kuch mat karo
+                return prev;
+            }
+        });
     });
-
     // 4. CLEANUP
     return () => {
       socket.disconnect(); // Component hatne par disconnect karo
-      console.log("❌ Socket Disconnected via Cleanup");
+      console.log("Socket Disconnected via Cleanup");
     };
   }, []);
 
@@ -208,7 +225,7 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white">
-                          {/* 🔥 FIX: Default to Doctor Name if not a doctor role */}
+                          {/* FIX: Default to Doctor Name if not a doctor role */}
                           {!isDoctor
                             ? appt.doctorId?.userId?.name
                               ? `Dr. ${appt.doctorId.userId.name}`
@@ -291,7 +308,7 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    {/* 🔥 PATIENT ACTIONS (Cancel Button Fix) 🔥 */}
+                    {/*  PATIENT ACTIONS (Cancel Button Fix)  */}
                     {!isDoctor &&
                       (appt.status === "pending" ||
                         appt.status === "approved") && (
