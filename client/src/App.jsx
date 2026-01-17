@@ -1,11 +1,8 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-// Components
 import FloatingNav from './components/ui/FloatingNav'
-import { CustomToaster } from './components/ui/Toast' // ✅ Toast Add kiya
-import { ProtectedRoute, PublicRoute } from './components/AuthGuard' // ✅ Guards Add kiye
-
+import { ProtectedRoute, PublicRoute } from './components/AuthGuard'
 // Pages
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/Forms/Auth'
