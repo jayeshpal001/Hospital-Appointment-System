@@ -123,6 +123,12 @@ const updateAppointmentStatus = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ success: false, message: "Appointment not found" });
     }
+    const io = req.app.get("io"); 
+    io.to(appointment.patientId.toString()).emit("status-updated", {
+      appointmentId, 
+      status, 
+      message: `Your appointment is now ${status}`
+    })
 
     res.status(200).json({
       success: true,

@@ -7,18 +7,39 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
-
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+  },
+});
+io.on("connection", (socket) => {
+  console.log("New socket Connected: ", socket.id);
+
+  socket.on("join-room", (userId) => {
+    socket.join(userId);
+    console.log(`User joined room: ${userId}`);
+  });
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected");
+  });
+});
+
+app.set("io", io)
+
 app.set("trust proxy", 1);
 dbConnect();
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, 
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.use("/api/auth", authRoutes);
