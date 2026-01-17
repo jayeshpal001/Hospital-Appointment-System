@@ -16,22 +16,26 @@ const Login = ({ onToggle }) => {
     try {    
       const res = await api.post("/auth/login", data);
       
-      // UPGRADE: Premium Toast Notification
-      localStorage.setItem("role", res.data.user.role);
-    
+      // 1. Save Token & Role
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.user.role);
+
+      // 2. CRITICAL FIX: Save User ID for Socket.io
+      // Ye line bahot zaroori hai, iske bina notification nahi aayega
+      localStorage.setItem("userId", res.data.user._id); 
+
       showToast("success", "Welcome Back! Login Successful.");
       console.log(res.data);
-        if (res.data.user.role==="patient") {
-        navigate("/findDoctors")
-      }
-      else{
-         navigate("/dashboard");
+      
+      // 3. Navigation Logic (Thoda delay taaki storage set ho jaye)
+      if (res.data.user.role === "patient") {
+        navigate("/findDoctors");
+      } else {
+        navigate("/dashboard");
       }
 
     } catch (error) {
       console.error(error);
-      // UPGRADE: Smart error message extraction
       const errorMsg = error.response?.data?.message || "Invalid email or password.";
       showToast("error", errorMsg);
     }

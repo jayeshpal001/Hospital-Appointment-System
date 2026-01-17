@@ -47,36 +47,49 @@ const Dashboard = () => {
     fetchAppointments();
   }, []);
   useEffect(() => {
-    const socket = io(ENDPOINT);
+    // 1. Connection Options (Auto-reconnect on)
+    const socket = io(ENDPOINT, {
+      reconnection: true,
+      reconnectionAttempts: 5,
+      transports: ["websocket"], // Force WebSocket for better speed
+    });
 
-    // Get User ID from LocalStorage (Jo humne Login par save kiya tha)
-    const userId = localStorage.getItem("userId");
+    // 2. CONNECT EVENT (Sabse Important Fix 🛠️)
+    socket.on("connect", () => {
+      console.log("✅ Frontend Socket Connected ID:", socket.id);
 
-    if (userId) {
-      // Room join karo taaki sirf apne updates milein
-      socket.emit("join-room", userId);
-    }
+      // LocalStorage se User ID nikalo
+      const userId = localStorage.getItem("userId");
 
-    // Listen for Real-Time Updates from Backend
+      if (userId) {
+        // Server ko batao: "Main ye user hoon, mujhe mere room me daalo"
+        socket.emit("join-room", userId);
+        console.log("📤 Sent join-room request for:", userId);
+      } else {
+        console.warn("⚠️ User ID not found in LocalStorage! Cannot join room.");
+      }
+    });
+
+    // 3. LISTEN FOR UPDATES
     socket.on("status-updated", (data) => {
-      console.log("Socket Update Received:", data);
+      console.log("🔔 Notification Received:", data);
 
-      // 1. Toast Dikhayein
-      showToast("info", data.message);
+      showToast("info", data.message); // Toast dikhao
 
-      // 2. List Update Karein (Bina Page Refresh kiye)
-      setAppointments((prevAppointments) =>
-        prevAppointments.map((appt) =>
+      // State Update (List refresh karo)
+      setAppointments((prev) =>
+        prev.map((appt) =>
           appt._id === data.appointmentId
-            ? { ...appt, status: data.status } // Status change karo
+            ? { ...appt, status: data.status }
             : appt,
         ),
       );
     });
 
-    // Cleanup: Jab user page se hata, socket disconnect karo
+    // 4. CLEANUP
     return () => {
-      socket.disconnect();
+      socket.disconnect(); // Component hatne par disconnect karo
+      console.log("❌ Socket Disconnected via Cleanup");
     };
   }, []);
 

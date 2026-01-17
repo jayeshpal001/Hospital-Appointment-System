@@ -18,7 +18,7 @@ const bookAppointment = async (req, res) => {
     }
 
     // B. Find Doctor & Get Info
-    // Populate userId taaki Doctor ko Real-time notify kar sakein
+    //  Populate userId taaki Doctor ko Real-time notify kar sakein
     const doctor = await Doctor.findById(doctorId).populate("userId"); 
     if (!doctor) {
       return res.status(404).json({ success: false, message: "Doctor not found" });
