@@ -17,9 +17,9 @@ import {
 
 import { showToast } from "../components/ui/Form";
 import api from "../api/axios";
-const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const ENDPOINT = SERVER_URL.replace("/api", "");
+const ENDPOINT = SERVER_URL;
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
