@@ -7,12 +7,14 @@ import {
 import axios from "axios";
 import { showToast } from "./Form";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 
 const FloatingNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
+   const { setIsAuth } = useAuth();
 
   // Hide Navbar on specific pages (Auth & Landing)
   const hiddenRoutes = ["/", "/auth"];
@@ -27,6 +29,7 @@ const FloatingNav = () => {
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
+      setIsAuth(false) ;
       localStorage.removeItem("role");
       showToast("success", "Logged out successfully");
       navigate("/");

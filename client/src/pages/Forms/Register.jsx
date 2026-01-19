@@ -4,25 +4,28 @@ import axios from "axios";
 import { FaUser, FaLock, FaEnvelope, FaUserMd } from "react-icons/fa";
 import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 // Import UI components and the custom 'showToast' function
 // import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form/FormComponents";
 
 const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
+   const { setIsAuth } = useAuth();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
     defaultValues: { role: "patient" }
   });
 
   const roleValue = watch("role"); // Watch value to update Select UI
-
+ 
  const onSubmit = async (data) => {
   try {
     const res = await api.post("/auth/register", data);
-
+    console.log(res.data);
+    
     if (res.data?.token) {
-      localStorage.setItem("token", res.data.token);
+      // localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", data.role);
-
+      setIsAuth(true);
       if (data.role === "doctor") {
         showToast("success", "Account created! Setting up Doctor Profile...");
         onDoctorSuccess(data);
@@ -36,8 +39,7 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
       error.response?.data?.message ||
       error.response?.data?.error ||
       "Registration Failed. Please try again.";
-
-    showToast("error", errorMsg);
+      showToast("error", errorMsg);
   }
 };
 

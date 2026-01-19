@@ -5,20 +5,23 @@ import { FaUser, FaLock } from "react-icons/fa";
 import { GlassInput, GradientButton, showToast  } from "../../components/ui/Form";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = ({ onToggle }) => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
   const navigate = useNavigate()
+  const { setIsAuth } = useAuth();
   const onSubmit = async (data) => {
     try {    
       const res = await api.post("/auth/login", data);
-
-      localStorage.setItem("token", res.data.token);
+       console.log(res.data);
+      // localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("userId", res.data.user._id); 
+      localStorage.setItem("userId", res.data.user.id); 
+      setIsAuth(true);
 
       showToast("success", "Welcome Back! Login Successful.");
-      console.log(res.data);
+      console.log(res.data.user.role);
 
       if (res.data.user.role === "patient") {
         navigate("/findDoctors");
@@ -26,7 +29,7 @@ const Login = ({ onToggle }) => {
         navigate("/dashboard");
       }
 
-    } catch (error) {
+    } catch (error) { 
       console.error(error);
       const errorMsg = error.response?.data?.message || "Invalid email or password.";
       showToast("error", errorMsg);
