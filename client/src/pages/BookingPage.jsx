@@ -56,7 +56,7 @@ const BookingPage = () => {
       return;
     }
 
-    // 🛑 NEW: Check if doctor works on this day
+    //  NEW: Check if doctor works on this day
     if (!isDateValid(selectedDate)) {
         const dayName = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' });
         showToast("error", `Doctor is not available on ${dayName}s.`);
@@ -145,7 +145,7 @@ const BookingPage = () => {
                         </div>
                     </div>
 
-                    {/* ✨ NEW SECTION: AVAILABLE DAYS ✨ */}
+                    {/*  NEW SECTION: AVAILABLE DAYS  */}
                     <div className="w-full mt-6 text-left">
                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                              <FaCalendarCheck /> Working Days

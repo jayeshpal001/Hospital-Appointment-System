@@ -15,16 +15,39 @@ import {
   FaBan,
 } from "react-icons/fa";
 
-import { showToast } from "../components/ui/Form";
 import api from "../api/axios";
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { showToast } from "../components/ui/Form";
 
-const ENDPOINT = SERVER_URL;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+// Safety Check: Remove /api if present
+const ENDPOINT = SERVER_URL ? SERVER_URL.replace("/api", "") : "http://localhost:5000";
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
+
+  // --- 🔔 1. NOTIFICATION HELPER FUNCTION ---
+  const sendDeviceNotification = (title, body) => {
+    // Check if browser supports notifications
+    if (!("Notification" in window)) return;
+
+    // Check permission
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body: body,
+        icon: "/vite.svg", // Aap yahan apna Logo path daal sakte hain (e.g., /logo.png)
+        vibrate: [200, 100, 200], // Mobile vibration pattern
+      });
+    }
+  };
+
+  // --- 🔔 2. REQUEST PERMISSION ON LOAD ---
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const fetchAppointments = async () => {
     try {
@@ -72,10 +95,15 @@ const Dashboard = () => {
     });
 
     // 3. LISTEN FOR UPDATES
-   // 🟢 SMART LISTENER (Handles Both New & Updates)
+    //  SMART LISTENER (Handles Both New & Updates)
     socket.on("status-updated", (data) => {
-        console.log("🔔 Data Received:", data);
+        console.log(" Data Received:", data);
+        
+        // A. App Toast
         showToast("info", data.message);
+
+        // B. 🔥 DEVICE NOTIFICATION TRIGGER 🔥
+        sendDeviceNotification("Vitalis Update", data.message);
 
         setAppointments((prev) => {
             // Step 1: Check karein ki kya ye appointment list me pehle se hai?
@@ -83,7 +111,7 @@ const Dashboard = () => {
 
             if (exists) {
                 // CASE A: Purana Card hai -> Sirf Status Update karo
-                console.log("🔄 Updating Existing Status");
+                console.log(" Updating Existing Status");
                 return prev.map((appt) => {
                     // ID match hone par status badal do
                     if (appt._id === data.appointmentId || appt._id === data.appointment?._id) {
@@ -94,7 +122,7 @@ const Dashboard = () => {
             } else {
                 // CASE B: List me nahi hai + Full Data aaya hai -> Naya Card Add karo
                 if (data.appointment) {
-                    console.log("➕ Adding New Card");
+                    console.log(" Adding New Card");
                     return [data.appointment, ...prev];
                 }
                 
@@ -103,6 +131,7 @@ const Dashboard = () => {
             }
         });
     });
+
     // 4. CLEANUP
     return () => {
       socket.disconnect(); // Component hatne par disconnect karo
@@ -308,7 +337,7 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    {/*  PATIENT ACTIONS (Cancel Button Fix)  */}
+                    {/* PATIENT ACTIONS (Cancel Button Fix)  */}
                     {!isDoctor &&
                       (appt.status === "pending" ||
                         appt.status === "approved") && (

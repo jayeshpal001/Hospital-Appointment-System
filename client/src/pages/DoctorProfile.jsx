@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 
 // Import your reusable toast components
-import { CustomToaster, showToast } from "../components/ui/Form"; 
+import {  showToast } from "../components/ui/Form"; 
 import api from "../api/axios";
 
 const DoctorProfile = () => {
