@@ -4,19 +4,18 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const dbConnect = require("./config/dbConnect");
-
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 
 const app = express();
-
-/* ===================== BASIC MIDDLEWARE ===================== */
+app.use(cookieParser());
 app.set("trust proxy", 1);
 app.use(express.json());
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL;
 
 app.use(
   cors({
@@ -27,20 +26,18 @@ app.use(
   })
 );
 
-/* ===================== CREATE SERVER ===================== */
 const server = http.createServer(app);
 
-/* ===================== SOCKET.IO ===================== */
 const io = new Server(server, {
   cors: {
     origin: CLIENT_URL,
     credentials: true,
   },
-  transports: ["websocket", "polling"], // 🔥 IMPORTANT
+  transports: ["websocket", "polling"], 
 });
 
 io.on("connection", (socket) => {
-  console.log("✅ Socket connected:", socket.id);
+  console.log(" Socket connected:", socket.id);
 
   socket.on("join-room", (userId) => {
     if (!userId) return;
@@ -48,22 +45,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ Socket disconnected:", socket.id);
+    console.log("Socket disconnected:", socket.id);
   });
 });
 
 app.set("io", io);
 
-/* ===================== ROUTES ===================== */
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/appointment", appointmentRoutes);
 
-/* ===================== START ===================== */
 dbConnect();
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

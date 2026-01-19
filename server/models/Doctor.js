@@ -7,8 +7,6 @@ const doctorSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
-    // --- Personal Details ---
     gender: {
       type: String,
       enum: ["male", "female", "other"],
@@ -17,13 +15,13 @@ const doctorSchema = new mongoose.Schema(
 
     degree: {
       type: String,
-      required: true, // e.g. "MBBS, MD"
+      required: true, 
     },
 
     age: {
       type: Number,
       required: true,
-      min: 21, // practical minimum for doctors
+      min: 21, 
     },
 
     phone: {
@@ -40,8 +38,6 @@ const doctorSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    // --- Professional Details ---
     specialization: {
       type: String,
       required: true,

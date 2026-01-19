@@ -2,21 +2,17 @@ const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 const Patient = require("../models/Patient");
 
-// --- 1. BOOK APPOINTMENT (Patient Only) ---
 const bookAppointment = async (req, res) => {
   try {
     const { doctorId, appointmentDate, slot, reason } = req.body;
     const userId = req.user.id; 
 
-    // A. Find Patient
     const patient = await Patient.findOne({ userId });
     if (!patient) return res.status(404).json({ success: false, message: "Patient not found." });
 
-    // B. Find Doctor (Populate userId for Socket)
     const doctor = await Doctor.findById(doctorId).populate("userId"); 
     if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
 
-    // C. Check Slot
     const isSlotTaken = await Appointment.findOne({
       doctorId,
       appointmentDate,
@@ -25,8 +21,6 @@ const bookAppointment = async (req, res) => {
     });
 
     if (isSlotTaken) return res.status(400).json({ success: false, message: "Slot already booked." });
-
-    // D. Create Appointment (Raw Data)
     let newAppointment = await Appointment.create({
       doctorId,
       patientId: patient._id,
@@ -37,13 +31,12 @@ const bookAppointment = async (req, res) => {
       status: "pending",
     });
 
-    // 🔥 STEP E: POPULATE DATA (Ye nayi line hai jo card dikhayegi) 🔥
-    // Hum usi appointment ko wapas dhoond kar poora data bhar rahe hain
+  
     const fullAppointment = await Appointment.findById(newAppointment._id)
       .populate({
         path: "patientId",
         select: "gender age bloodGroup medicalHistory", 
-        populate: { path: "userId", select: "name email" } // Patient Name
+        populate: { path: "userId", select: "name email" } 
       })
       .populate({
         path: "doctorId",
@@ -51,23 +44,21 @@ const bookAppointment = async (req, res) => {
         populate: { path: "userId", select: "name" }
       });
 
-    // F. Notify Doctor (USING SAME OLD EVENT NAME)
     const io = req.app.get("io");
     if (doctor.userId) {
-        console.log("📢 Emitting status-updated to Doctor:", doctor.userId._id);
+        console.log("Emitting status-updated to Doctor:", doctor.userId._id);
         
-        // Hum event name 'status-updated' hi rakhenge taaki notification fail na ho
         io.to(doctor.userId._id.toString()).emit("status-updated", {
             message: `New Appointment Request from ${req.user.name || "a Patient"}`,
-            appointment: fullAppointment, // 👈 Ab ye Poora Object hai!
-            isNew: true // 👈 Ye flag batayega ki ye naya hai
+            appointment: fullAppointment, 
+            isNew: true 
         });
     }
 
     res.status(201).json({
       success: true,
       message: "Appointment booked successfully!",
-      appointment: fullAppointment, // Response me bhi full data
+      appointment: fullAppointment, 
     });
 
   } catch (error) {
@@ -76,7 +67,7 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// --- 2. GET USER APPOINTMENTS (Perfect) ---
+
 const getMyAppointments = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -121,12 +112,9 @@ const getMyAppointments = async (req, res) => {
   }
 };
 
-// --- 3. UPDATE STATUS (Fixed Socket Logic) ---
 const updateAppointmentStatus = async (req, res) => {
   try {
     const { appointmentId, status } = req.body;
-
-    // 1. Update DB
     const appointment = await Appointment.findByIdAndUpdate(
       appointmentId,
       { status },
@@ -137,19 +125,15 @@ const updateAppointmentStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Appointment not found" });
     }
 
-    // 2. FIND REAL USER ID (Crucial Fix)
-    // Appointment me sirf PatientId hai, humein uske andar ka UserId chahiye
-    // Isliye hum Patient model ko dhoond kar populate karenge
     const patientData = await Patient.findById(appointment.patientId).select("userId");
-    
-    // 3. Emit Real-time Event
+
     const io = req.app.get("io");
     
     if (patientData && patientData.userId) {
-        // Ab hum sahi kamre (Room) me awaz laga rahe hain
+
         const roomID = patientData.userId.toString();
         
-        console.log(`Emitting to Room: ${roomID}`); // Debugging k liye
+        console.log(`Emitting to Room: ${roomID}`); 
 
         io.to(roomID).emit("status-updated", {
             appointmentId,

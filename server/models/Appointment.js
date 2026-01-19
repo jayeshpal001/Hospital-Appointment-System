@@ -12,12 +12,10 @@ const appointmentSchema = new mongoose.Schema(
       ref: "Patient",
       required: true,
     },
-    // The specific date of the appointment (e.g., 2023-10-25)
     appointmentDate: {
       type: Date,
       required: true,
     },
-    // The specific time slot (copied from doctor's available slots)
     slot: {
       startTime: { type: String, required: true },
       endTime: { type: String, required: true },
@@ -35,7 +33,6 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["pending", "approved", "cancelled", "completed"],
       default: "pending",
     },
-    // Optional: To store payment status if you integrate Stripe/Razorpay later
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid"],

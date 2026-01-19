@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
 
-  // --- 🔔 1. NOTIFICATION HELPER FUNCTION ---
+  //  1. NOTIFICATION HELPER FUNCTION ---
   const sendDeviceNotification = (title, body) => {
     // Check if browser supports notifications
     if (!("Notification" in window)) return;
@@ -42,7 +42,7 @@ const Dashboard = () => {
     }
   };
 
-  // --- 🔔 2. REQUEST PERMISSION ON LOAD ---
+  //  2. REQUEST PERMISSION ON LOAD ---
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
@@ -102,7 +102,7 @@ const Dashboard = () => {
         // A. App Toast
         showToast("info", data.message);
 
-        // B. 🔥 DEVICE NOTIFICATION TRIGGER 🔥
+        // B.DEVICE NOTIFICATION TRIGGER
         sendDeviceNotification("Vitalis Update", data.message);
 
         setAppointments((prev) => {

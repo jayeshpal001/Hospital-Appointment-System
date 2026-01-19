@@ -7,18 +7,15 @@ const patientSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
-    // --- Personal Details ---
     gender: {
       type: String,
       enum: ["male", "female", "other"],
       required: true,
     },
-
     age: {
       type: Number,
       required: true,
-      min: 0, // Patients can be newborns
+      min: 0,
       max: 120,
     },
 
@@ -43,10 +40,10 @@ const patientSchema = new mongoose.Schema(
       required: true,
     },
 
-    // --- Medical History ---
+   
     medicalHistory: {
       type: String, 
-      default: "", // Optional: Can be empty if no conditions exist
+      default: "", 
       trim: true,
     },
   },

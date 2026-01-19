@@ -24,9 +24,7 @@ exports.userProfile = async (req, res) => {
 
 exports.doctorProfile = async (req, res) => {
   try {
-    // authMiddleware already ensures req.user exists
     const userId = req.user.id;
-
     const doctorProfile = await Doctor.findOne({ userId })
       .populate("userId", "name email role");
 
@@ -52,9 +50,8 @@ exports.doctorProfile = async (req, res) => {
 
 exports.getPatientProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // From middleware
-    
-    // Find patient and populate basic user details (name, email)
+    const userId = req.user.id; 
+  
     const patient = await Patient.findOne({ userId }).populate("userId", "name email");
 
     if (!patient) {
