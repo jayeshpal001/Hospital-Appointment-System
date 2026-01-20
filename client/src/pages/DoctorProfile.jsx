@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // Don't forget this import
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom"; 
 import {
   FaUserMd,
   FaPhoneAlt,
@@ -17,40 +17,29 @@ import {
   FaClock
 } from "react-icons/fa";
 
-import { showToast } from "../components/ui/Form"; // Verify path
-import api from "../api/axios";
+import { showToast } from "../components/ui/Form";
 import { useAuth } from "../context/AuthContext";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 
+// 🔥 RTK Query Imports
+import { useGetDoctorProfileQuery, useLogoutMutation } from "../redux/api/apiSlice";
 
 const DoctorProfile = () => {
   const { setIsAuth } = useAuth();
   const navigate = useNavigate();
   
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // --- 🔥 1. RTK QUERY HOOKS ---
+  // Automatically fetches data, handles loading, and caches the result
+  const { data: profileData, isLoading } = useGetDoctorProfileQuery();
   
+  // Logout Mutation
+  const [logoutApi] = useLogoutMutation();
+
+  // Extract actual profile object (Assuming response is { success: true, doctor: {...} })
+  const profile = profileData?.doctor;
+
   // --- STATE FOR MODAL ---
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/user/doctorProfile");
-
-        if (res.data.success) {
-          setProfile(res.data.doctor);
-        }
-      } catch (error) {
-        console.error(error);
-        showToast("error", "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
 
   // --- ANIMATION VARIANTS ---
   const containerVariants = {
@@ -70,9 +59,9 @@ const DoctorProfile = () => {
   // --- ACTUAL LOGOUT LOGIC ---
   const confirmLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      await logoutApi().unwrap(); // 🔥 Call RTK Mutation
       setIsAuth(false);
-      localStorage.clear(); // Clear everything
+      localStorage.clear(); 
       showToast("success", "Logged out successfully");
       navigate("/");
     } catch (error) {
@@ -83,7 +72,7 @@ const DoctorProfile = () => {
   };
 
   // --- LOADING STATE ---
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
         <div className="relative">
@@ -96,9 +85,10 @@ const DoctorProfile = () => {
     );
   }
 
+  // Safety check if data is missing after loading
   if (!profile) return null;
 
-  // Destructure All Data (Old + New)
+  // Destructure All Data
   const {
     userId: user,
     degree,
@@ -152,7 +142,7 @@ const DoctorProfile = () => {
             {/* Name & Chips */}
             <div className="text-center md:text-left flex-1">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-                Dr. {user.name}
+                Dr. {user?.name}
               </h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
@@ -180,7 +170,7 @@ const DoctorProfile = () => {
                 <FaEdit className="text-xl group-hover:text-cyan-400" />
               </button>
               
-              {/*  Updated Logout Button */}
+              {/* Updated Logout Button */}
               <button
                 onClick={() => setIsLogoutModalOpen(true)} // Opens Modal
                 className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-red-400 group"
@@ -208,7 +198,7 @@ const DoctorProfile = () => {
                 <h3 className="text-gray-400 font-medium">Consultation Fee</h3>
               </div>
               <p className="text-3xl font-bold text-white ml-2">
-                ₹ {consultationFee.toLocaleString()}
+                ₹ {consultationFee?.toLocaleString()}
                 <span className="text-sm text-gray-500 font-normal ml-2">
                   / visit
                 </span>
@@ -262,9 +252,9 @@ const DoctorProfile = () => {
                   <span className="text-gray-500">Email</span>
                   <span
                     className="text-white truncate max-w-37.5"
-                    title={user.email}
+                    title={user?.email}
                   >
-                    {user.email}
+                    {user?.email}
                   </span>
                 </div>
 
@@ -298,7 +288,7 @@ const DoctorProfile = () => {
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {allDays.map((day) => {
-                    const isActive = availableDays.includes(day);
+                    const isActive = availableDays?.includes(day);
                     return (
                       <div
                         key={day}
@@ -321,7 +311,7 @@ const DoctorProfile = () => {
                 <label className="text-sm text-gray-400 mb-4 block font-medium">
                   Daily Slots
                 </label>
-                {availableSlots.length > 0 ? (
+                {availableSlots?.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {availableSlots.map((slot, index) => (
                       <div

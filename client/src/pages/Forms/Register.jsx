@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { FaUser, FaLock, FaEnvelope, FaUserMd } from "react-icons/fa";
 import {
   GlassInput,
@@ -7,52 +6,50 @@ import {
   GradientButton,
   showToast,
 } from "../../components/ui/Form";
-import api from "../../api/axios";
-import { useAuth } from "../../context/AuthContext";
 
-// import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form/FormComponents";
+// RTK Query Import
+import { useRegisterMutation } from "../../redux/api/apiSlice";
 
 const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
-  const { setIsAuth } = useAuth();
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     defaultValues: { role: "patient" },
   });
 
   const roleValue = watch("role");
 
-  // Register.jsx ka onSubmit function update karein:
+  // 1. RTK MUTATION HOOK ---
+  const [registerApi, { isLoading }] = useRegisterMutation();
 
   const onSubmit = async (data) => {
     try {
-      const res = await api.post("/auth/register", data);
-      console.log("Register Response:", res.data);
+      // 2. CALL API ---
+      // unwrap() extracts the raw response directly
+      const res = await registerApi(data).unwrap();
+      console.log("Register Response:", res);
 
-      if (res.data?.success) {
-        
+      if (res.success) {
+        // Store essentials for the next step (Profile Setup)
         localStorage.setItem("role", data.role);
-        localStorage.setItem("userId", res.data.user.id);
+        localStorage.setItem("userId", res.user.id);
+
         if (data.role === "doctor") {
-          localStorage.setItem("role", data.role);
-          localStorage.setItem("userId", res.data.user.id);
           showToast("success", "Account created! Setting up Doctor Profile...");
           onDoctorSuccess(data);
         } else {
-          showToast(
-            "success",
-            "Account created! Setting up Patient Profile...",
-          );
+          showToast("success", "Account created! Setting up Patient Profile...");
           onPatientSuccess(data);
         }
       }
     } catch (error) {
-      console.error(error);
-      const errorMsg = error.response?.data?.message || "Registration Failed.";
+      console.error("Register Error:", error);
+      // RTK Query errors are usually stored in error.data
+      const errorMsg = error?.data?.message || "Registration Failed.";
       showToast("error", errorMsg);
     }
   };
@@ -113,7 +110,8 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
 
       {/* Submit Button (Pink Variant) */}
       <div className="mt-6 w-48">
-        <GradientButton loading={isSubmitting} variant="pink">
+        {/* Pass isLoading from RTK Query */}
+        <GradientButton loading={isLoading} variant="pink">
           Sign Up
         </GradientButton>
       </div>

@@ -5,13 +5,17 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { CustomToaster } from "./components/ui/Form/ToastSystem.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { Provider } from "react-redux";
+import { store } from "./redux/store.js";
 // import { CustomToaster } from './components/ui/Form/FormComponents.jsx'
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <CustomToaster />
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </Provider>
   </BrowserRouter>,
 );

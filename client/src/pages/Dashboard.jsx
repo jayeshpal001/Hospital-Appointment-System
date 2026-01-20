@@ -14,15 +14,22 @@ import {
   FaFileMedicalAlt,
   FaBan,
   FaSignOutAlt,
-  FaMoneyBillWave, 
-  FaUsers,         
-  FaCalendarCheck  
+  FaMoneyBillWave,
+  FaUsers,
+  FaCalendarCheck
 } from "react-icons/fa";
 
-import api from "../api/axios";
+// 🔥 RTK QUERY IMPORTS
+import { 
+  useGetMyAppointmentsQuery, 
+  useGetDoctorStatsQuery, 
+  useUpdateAppointmentStatusMutation,
+  useLogoutMutation
+} from "../redux/api/apiSlice";
+
 import { showToast } from "../components/ui/Form";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
-import GlassDropdown from "../components/ui/GlassDropdown"; // 🔥 Imported Aesthetic Dropdown
+import GlassDropdown from "../components/ui/GlassDropdown"; 
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -30,151 +37,100 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const ENDPOINT = SERVER_URL ? SERVER_URL.replace("/api", "") : "http://localhost:5000";
 
 const Dashboard = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [stats, setStats] = useState({ totalAppointments: 0, totalEarnings: 0, totalPatients: 0 });
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState("");
   const { setIsAuth } = useAuth();
   const navigate = useNavigate();
+  const userRole = localStorage.getItem("role"); // Get role directly
+  const isDoctor = userRole === "doctor";
 
+  // --- 🔥 RTK QUERY HOOKS (Auto Fetching) ---
+  
+  // 1. Get Appointments
+  const { 
+    data: appointmentsData, 
+    isLoading: isApptLoading, 
+    refetch: refetchAppointments 
+  } = useGetMyAppointmentsQuery();
+
+  // 2. Get Stats (Conditional Fetching: Only if Doctor)
+  const { 
+    data: statsData,
+    refetch: refetchStats 
+  } = useGetDoctorStatsQuery(undefined, { skip: !isDoctor });
+
+  // 3. Mutations
+  const [updateStatus] = useUpdateAppointmentStatusMutation();
+  const [logoutApi] = useLogoutMutation();
+
+  // --- STATE ---
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
   const [filterStatus, setFilterStatus] = useState("all");
 
+  // Derived Data (Safe Fallbacks)
+  const appointments = appointmentsData?.data || [];
+  const stats = statsData?.data || { totalAppointments: 0, totalEarnings: 0, totalPatients: 0 };
+
+  // --- 🧠 FILTER LOGIC ---
   const filteredAppointments = appointments.filter((appt) => {
     if (filterStatus === "all") return true;
     return appt.status === filterStatus;
   });
 
-
+  // --- NOTIFICATIONS ---
   const sendDeviceNotification = (title, body) => {
     if (!("Notification" in window)) return;
     if (Notification.permission === "granted") {
-      new Notification(title, {
-        body: body,
-        icon: "/vite.svg",
-        vibrate: [200, 100, 200],
-      });
+      new Notification(title, { body, icon: "/vite.svg", vibrate: [200, 100, 200] });
     }
   };
 
-  // 2. REQUEST PERMISSION
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
   }, []);
 
-  const fetchData = async () => {
-    try {
-      // 1. Fetch Appointments
-      const res = await api.get("/appointment/my-appointments");
-
-      if (res.data.success) {
-        setAppointments(res.data.data);
-        const storedRole = localStorage.getItem("role");
-        setUserRole(storedRole);
-
-        // 2. Fetch Stats (Only if Doctor)
-        if (storedRole === "doctor") {
-            try {
-                const statsRes = await api.get("/appointment/stats"); // Corrected Route
-                console.log("From stats: ",statsRes.data);
-                
-                if (statsRes.data.success) {
-                    setStats(statsRes.data.data);
-                }
-            } catch (err) {
-                console.error("Stats fetch error", err);
-            }
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      showToast("error", "Failed to fetch data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-  
-
-  // --- SOCKET LOGIC ---
+  // --- ⚡ SOCKET LOGIC ---
   useEffect(() => {
     const socket = io(ENDPOINT, {
       reconnection: true,
-      reconnectionAttempts: 5,
       transports: ["websocket"],
     });
 
     socket.on("connect", () => {
-      console.log("Frontend Socket Connected ID:", socket.id);
       const userId = localStorage.getItem("userId");
-      if (userId) {
-        socket.emit("join-room", userId);
-      }
+      if (userId) socket.emit("join-room", userId);
     });
 
-    // SMART LISTENER
+    // Handle Real-time Updates
     socket.on("status-updated", (data) => {
-        console.log("Data Received:", data);
         showToast("info", data.message);
         sendDeviceNotification("Vitalis Update", data.message);
-
-        // Update Appointments List
-        setAppointments((prev) => {
-            const exists = prev.some(appt => appt._id === data.appointmentId || appt._id === data.appointment?._id);
-
-            if (exists) {
-                // Update Existing
-                return prev.map((appt) => {
-                    if (appt._id === data.appointmentId || appt._id === data.appointment?._id) {
-                        return { ...appt, status: data.status };
-                    }
-                    return appt;
-                });
-            } else {
-                // Add New
-                if (data.appointment) return [data.appointment, ...prev];
-                return prev;
-            }
-        });
         
-        // Optional: Trigger Stats Refresh on change
-        if (userRole === 'doctor') {
-             // You can call fetchData() here or handle stats update locally
-        }
+        // 🔥 Force RTK Query to refresh data from server
+        refetchAppointments();
+        if(isDoctor) refetchStats();
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [userRole]); // Added userRole dependency
+    return () => socket.disconnect();
+  }, [isDoctor, refetchAppointments, refetchStats]);
 
-  // --- ACTIONS ---
+  // --- HANDLERS ---
   const handleStatus = async (id, status) => {
     try {
-      const res = await api.put("/appointment/status", {
-        appointmentId: id,
-        status,
-      });
-      if (res.data.success) {
-        showToast("success", `Appointment ${status}`);
-        fetchData(); // Refresh list & stats to keep counts accurate
-      }
+      // 🔥 RTK Mutation (Auto-refetches lists via 'invalidatesTags')
+      await updateStatus({ appointmentId: id, status }).unwrap();
+      showToast("success", `Appointment ${status}`);
     } catch (error) {
+      console.error(error);
       showToast("error", "Action Failed");
     }
   };
 
   const confirmLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      await logoutApi().unwrap(); // Call Logout API
       setIsAuth(false);
-      localStorage.removeItem("role");
+      localStorage.clear(); // Clear all storage
       showToast("success", "Logged out successfully");
       navigate("/");
     } catch (error) {
@@ -184,6 +140,7 @@ const Dashboard = () => {
     }
   };
 
+  // --- UI HELPERS ---
   const getStatusStyle = (status) => {
     switch (status) {
       case "approved": return "bg-green-500/20 text-green-400 border-green-500/50";
@@ -201,24 +158,17 @@ const Dashboard = () => {
     }
   };
 
-  const isDoctor = userRole === "doctor";
-
-   if (loading) {
+  // --- RENDER LOADING ---
+  if (isApptLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <div className="relative">
-            <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 bg-cyan-500 rounded-full blur-lg animate-pulse"></div>
-            </div>
-        </div>
+        <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-slate-200 p-4 md:p-8 font-sans relative overflow-hidden pb-32">
-      {/* Background Effect */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[100px]"></div>
       </div>
@@ -238,56 +188,34 @@ const Dashboard = () => {
             </p>
           </div>
 
+          {/* Aesthetic Dropdown */}
           <GlassDropdown currentFilter={filterStatus} setFilter={setFilterStatus} />
         </div>
 
         {/* STATS CARDS (Only for Doctor) */}
         {isDoctor && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                
-                {/* Card 1: Earnings */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-green-500/30 transition-all"
-                >
-                    <div className="p-4 rounded-xl bg-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                        <FaMoneyBillWave size={24} />
-                    </div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-green-500/30 transition-all">
+                    <div className="p-4 rounded-xl bg-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]"><FaMoneyBillWave size={24} /></div>
                     <div>
                         <p className="text-gray-400 text-sm">Total Earnings</p>
-                        <h3 className="text-3xl font-bold text-white">
-                            ₹ {stats.totalEarnings?.toLocaleString() || 0}
-                        </h3>
-                    </div>
-                </motion.div>
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-blue-500/30 transition-all"
-                >
-                    <div className="p-4 rounded-xl bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-                        <FaUsers size={24} />
-                    </div>
-                    <div>
-                        <p className="text-gray-400 text-sm">Unique Patients</p>
-                        <h3 className="text-3xl font-bold text-white">
-                            {stats.totalPatients || 0}
-                        </h3>
+                        <h3 className="text-3xl font-bold text-white">₹ {stats.totalEarnings?.toLocaleString() || 0}</h3>
                     </div>
                 </motion.div>
 
-                {/* Card 3: Appointments */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-purple-500/30 transition-all"
-                >
-                    <div className="p-4 rounded-xl bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                        <FaCalendarCheck size={24} />
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-blue-500/30 transition-all">
+                    <div className="p-4 rounded-xl bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]"><FaUsers size={24} /></div>
+                    <div>
+                        <p className="text-gray-400 text-sm">Unique Patients</p>
+                        <h3 className="text-3xl font-bold text-white">{stats.totalPatients || 0}</h3>
                     </div>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex items-center gap-4 hover:border-purple-500/30 transition-all">
+                    <div className="p-4 rounded-xl bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]"><FaCalendarCheck size={24} /></div>
                     <div>
                         <p className="text-gray-400 text-sm">Total Bookings</p>
-                        <h3 className="text-3xl font-bold text-white">
-                            {stats.totalAppointments || 0}
-                        </h3>
+                        <h3 className="text-3xl font-bold text-white">{stats.totalAppointments || 0}</h3>
                     </div>
                 </motion.div>
             </div>
@@ -297,9 +225,7 @@ const Dashboard = () => {
         {filteredAppointments.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl bg-white/5">
             <p className="text-gray-500 text-lg">
-                {filterStatus === "all" 
-                    ? "No appointments found." 
-                    : `No ${filterStatus} appointments found.`}
+                {filterStatus === "all" ? "No appointments found." : `No ${filterStatus} appointments found.`}
             </p>
           </div>
         ) : (
@@ -308,27 +234,22 @@ const Dashboard = () => {
               {filteredAppointments.map((appt) => (
                 <motion.div
                   key={appt._id}
-                  layout // 🔥 Layout animation for smooth reordering
+                  layout 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 hover:border-white/20 transition-all group relative overflow-hidden"
                 >
-                  {/* Status Color Strip */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${
                       appt.status === "approved" ? "bg-green-500" : appt.status === "cancelled" ? "bg-red-500" : "bg-yellow-500"
                     }`}
                   ></div>
 
-                  {/* Header Row */}
                   <div className="flex justify-between items-start mb-4 pl-4">
                     <div className="flex items-center gap-4">
-                      {/* Avatar */}
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${!isDoctor ? "bg-linear-to-br from-cyan-500 to-blue-600" : "bg-linear-to-br from-green-500 to-teal-600"}`}>
                         {!isDoctor ? <FaUserMd className="text-white" /> : <FaUser className="text-white" />}
                       </div>
-                      
-                      {/* Name & Specialization */}
                       <div>
                         <h3 className="text-xl font-bold text-white">
                           {!isDoctor
@@ -344,14 +265,11 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-
-                    {/* Status Badge */}
                     <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-2 uppercase tracking-wide ${getStatusStyle(appt.status)}`}>
                       {getStatusIcon(appt.status)} {appt.status}
                     </div>
                   </div>
 
-                  {/* Details Grid */}
                   <div className="pl-4 grid grid-cols-2 gap-4 mb-4 bg-black/20 p-4 rounded-xl">
                     <div>
                       <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><FaCalendarAlt /> Date</p>
@@ -369,7 +287,6 @@ const Dashboard = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="pl-4 mt-4 pt-4 border-t border-white/5">
                     {isDoctor && appt.status === "pending" && (
                       <div className="flex gap-3">

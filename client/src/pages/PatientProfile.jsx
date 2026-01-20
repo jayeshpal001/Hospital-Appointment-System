@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaUser,
@@ -16,51 +16,37 @@ import {
 } from "react-icons/fa";
 
 // Import your reusable toast components
-import { showToast } from "../components/ui/Form"; // Verify path
+import { showToast } from "../components/ui/Form";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 
+// 🔥 RTK Query Imports
+import { useGetPatientProfileQuery, useLogoutMutation } from "../redux/api/apiSlice";
 
 const PatientProfile = () => {
-  const [profile, setProfile] = useState(null);
   const { setIsAuth } = useAuth();
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // --- 🔥 1. RTK QUERY HOOKS ---
+  // Fetch Patient Profile (Auto-loading & Caching)
+  const { data: profileData, isLoading } = useGetPatientProfileQuery();
+  
+  // Logout Mutation
+  const [logoutApi] = useLogoutMutation();
+
+  // Extract patient object
+  const profile = profileData?.patient;
 
   // --- MODAL STATE ---
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  // --- FETCH DATA ---
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        await new Promise((r) => setTimeout(r, 1000)); // Smooth delay
-
-        // Make sure this route exists in your backend
-        const res = await api.get("/user/patientProfile");
-
-        if (res.data.success) {
-          setProfile(res.data.patient);
-        }
-      } catch (error) {
-        console.error(error);
-        showToast("error", "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  // --- ACTUAL LOGOUT LOGIC (Triggered by Modal) ---
+  // --- ACTUAL LOGOUT LOGIC ---
   const confirmLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      await logoutApi().unwrap(); // 🔥 Call RTK Mutation
       setIsAuth(false);
-      localStorage.removeItem("role");
+      localStorage.clear();
       showToast("success", "Logged out successfully");
       navigate("/");
     } catch (error) {
@@ -86,7 +72,7 @@ const PatientProfile = () => {
   };
 
   // --- LOADING STATE ---
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
         <div className="relative">
@@ -99,6 +85,7 @@ const PatientProfile = () => {
     );
   }
 
+  // Safety Check
   if (!profile) return null;
 
   // Destructure Data
@@ -148,7 +135,7 @@ const PatientProfile = () => {
             {/* Name & Chips */}
             <div className="text-center md:text-left flex-1">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-                {user.name}
+                {user?.name}
               </h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
@@ -162,7 +149,7 @@ const PatientProfile = () => {
                 </span>
               </div>
               <p className="text-gray-400 flex items-center justify-center md:justify-start gap-2">
-                <FaEnvelope className="text-gray-500" /> {user.email}
+                <FaEnvelope className="text-gray-500" /> {user?.email}
               </p>
             </div>
 
@@ -175,6 +162,7 @@ const PatientProfile = () => {
                 <FaEdit className="text-xl group-hover:text-green-400" />
               </button>
               
+              {/* Updated Logout Button */}
               <button
                 onClick={() => setIsLogoutModalOpen(true)} // Opens Modal
                 className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-red-400 group"
@@ -297,6 +285,7 @@ const PatientProfile = () => {
         </div>
       </motion.div>
 
+      {/* REUSABLE CONFIRMATION MODAL */}
       <ConfirmationModal 
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
