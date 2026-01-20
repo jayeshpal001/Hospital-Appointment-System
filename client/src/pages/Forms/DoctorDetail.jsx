@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 // 1. Added GlassSelect to imports
 import { GlassInput, GlassTimePicker, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 const DoctorDetail = ({ onBack }) => {
   const { register, control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
@@ -27,7 +28,7 @@ const DoctorDetail = ({ onBack }) => {
       availableSlots: [{ startTime: "09:00", endTime: "17:00" }]
     }
   });
-
+   const { setIsAuth } = useAuth();
   const { fields, append, remove } = useFieldArray({ control, name: "availableSlots" });
   const selectedDays = watch("availableDays");
   const genderValue = watch("gender"); // 3. Watch gender value for the dropdown
@@ -58,6 +59,7 @@ const DoctorDetail = ({ onBack }) => {
             },
             
         );
+        setIsAuth(true);
 
         console.log(res.data);
         showToast("success", "Profile Setup Complete! Redirecting...");

@@ -4,7 +4,7 @@ import Login from "./Login";
 import Register from "./Register";
 import DoctorDetail from "./DoctorDetail";
 import PatientDetail from "./PatientDetail"; // Import New Component
-import { CustomToaster } from "../../components/ui/Form";
+  
 
 
 const AuthPage = () => {

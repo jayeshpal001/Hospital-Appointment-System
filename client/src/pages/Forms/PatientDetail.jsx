@@ -8,8 +8,10 @@ import {
 import { GlassInput, GlassSelect, GradientButton, showToast } from "../../components/ui/Form";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 const PatientDetail = ({ onBack }) => {
+      const { setIsAuth } = useAuth();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
     defaultValues: {
       age: "",
@@ -38,6 +40,7 @@ const PatientDetail = ({ onBack }) => {
                 age: Number(data.age),
             }
         );
+        setIsAuth(true);
 
         console.log(res.data);
         showToast("success", "Patient Profile Created! Redirecting...");
