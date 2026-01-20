@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import {
   FaUser,
@@ -17,16 +16,21 @@ import {
 } from "react-icons/fa";
 
 // Import your reusable toast components
-import { CustomToaster, showToast } from "../components/ui/Form";
+import { showToast } from "../components/ui/Form"; // Verify path
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import ConfirmationModal from "../components/ui/ConfirmationModal";
+
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState(null);
   const { setIsAuth } = useAuth();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // --- MODAL STATE ---
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // --- FETCH DATA ---
   useEffect(() => {
@@ -50,7 +54,9 @@ const PatientProfile = () => {
 
     fetchProfile();
   }, []);
-  const handleLogout = async () => {
+
+  // --- ACTUAL LOGOUT LOGIC (Triggered by Modal) ---
+  const confirmLogout = async () => {
     try {
       await api.post("/auth/logout");
       setIsAuth(false);
@@ -59,8 +65,11 @@ const PatientProfile = () => {
       navigate("/");
     } catch (error) {
       showToast("error", "Logout failed");
+    } finally {
+        setIsLogoutModalOpen(false);
     }
   };
+
   // --- ANIMATION VARIANTS ---
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -105,7 +114,7 @@ const PatientProfile = () => {
   } = profile;
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] text-slate-200 font-sans p-4 md:p-8 overflow-hidden">
+    <div className="relative min-h-screen bg-[#0a0a0a] text-slate-200 font-sans p-4 md:p-8 overflow-hidden pb-32">
       {/* Background Aurora (Green/Teal Theme for Patients) */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-600/20 rounded-full mix-blend-screen filter blur-[150px] animate-aurora"></div>
@@ -165,8 +174,9 @@ const PatientProfile = () => {
               >
                 <FaEdit className="text-xl group-hover:text-green-400" />
               </button>
+              
               <button
-              onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)} // Opens Modal
                 className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-red-400 group"
                 title="Logout"
               >
@@ -286,6 +296,17 @@ const PatientProfile = () => {
           </motion.div>
         </div>
       </motion.div>
+
+      <ConfirmationModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+        title="Logout from Profile?"
+        message="Are you sure you want to log out?"
+        confirmText="Yes, Logout"
+        variant="danger"
+        icon={FaSignOutAlt}
+      />
     </div>
   );
 };

@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // Don't forget this import
 import {
   FaUserMd,
-  FaEnvelope,
-  FaBriefcase,
-  FaMoneyBillWave,
-  FaClock,
-  FaCalendarCheck,
   FaPhoneAlt,
   FaEdit,
   FaSignOutAlt,
@@ -15,16 +11,28 @@ import {
   FaMapMarkerAlt,
   FaBirthdayCake,
   FaVenusMars,
+  FaMoneyBillWave,
+  FaBriefcase,
+  FaCalendarCheck,
+  FaClock
 } from "react-icons/fa";
 
-import { showToast } from "../components/ui/Form";
+import { showToast } from "../components/ui/Form"; // Verify path
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import ConfirmationModal from "../components/ui/ConfirmationModal";
+
 
 const DoctorProfile = () => {
-    const { setIsAuth } = useAuth();
+  const { setIsAuth } = useAuth();
+  const navigate = useNavigate();
+  
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // --- STATE FOR MODAL ---
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -58,15 +66,19 @@ const DoctorProfile = () => {
       transition: { type: "spring", stiffness: 50 },
     },
   };
-  const handleLogout = async () => {
+
+  // --- ACTUAL LOGOUT LOGIC ---
+  const confirmLogout = async () => {
     try {
       await api.post("/auth/logout");
       setIsAuth(false);
-      localStorage.removeItem("role");
+      localStorage.clear(); // Clear everything
       showToast("success", "Logged out successfully");
       navigate("/");
     } catch (error) {
       showToast("error", "Logout failed");
+    } finally {
+        setIsLogoutModalOpen(false);
     }
   };
 
@@ -93,7 +105,7 @@ const DoctorProfile = () => {
     specialization,
     experience,
     age,
-    gender, // Added gender here
+    gender, 
     nationality,
     phone,
     address,
@@ -105,7 +117,7 @@ const DoctorProfile = () => {
   const allDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] text-slate-200 font-sans p-4 md:p-8 overflow-hidden">
+    <div className="relative min-h-screen bg-[#0a0a0a] text-slate-200 font-sans p-4 md:p-8 overflow-hidden pb-32">
       {/* Background Aurora */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full mix-blend-screen filter blur-[150px] animate-aurora"></div>
@@ -167,8 +179,10 @@ const DoctorProfile = () => {
               >
                 <FaEdit className="text-xl group-hover:text-cyan-400" />
               </button>
+              
+              {/*  Updated Logout Button */}
               <button
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)} // Opens Modal
                 className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-red-400 group"
                 title="Logout"
               >
@@ -289,11 +303,11 @@ const DoctorProfile = () => {
                       <div
                         key={day}
                         className={`w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-bold transition-all duration-300
-                                            ${
-                                              isActive
-                                                ? "bg-linear-to-br from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(0,242,254,0.4)] scale-110 border border-transparent"
-                                                : "bg-[#111] text-gray-600 border border-white/5"
-                                            }`}
+                                                    ${
+                                                      isActive
+                                                        ? "bg-linear-to-br from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(0,242,254,0.4)] scale-110 border border-transparent"
+                                                        : "bg-[#111] text-gray-600 border border-white/5"
+                                                    }`}
                       >
                         {day.slice(0, 3)}
                       </div>
@@ -345,6 +359,16 @@ const DoctorProfile = () => {
           </motion.div>
         </div>
       </motion.div>
+      <ConfirmationModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+        title="Logout from Profile?"
+        message="Are you sure you want to log out?"
+        confirmText="Yes, Logout"
+        variant="danger"
+        icon={FaSignOutAlt}
+      />
     </div>
   );
 };
