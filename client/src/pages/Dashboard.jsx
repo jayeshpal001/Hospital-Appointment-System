@@ -183,12 +183,18 @@ const Dashboard = () => {
   // If role is missing, we assume it's NOT a doctor (so it defaults to Patient view)
   const isDoctor = userRole === "doctor";
 
-  if (loading)
+   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-cyan-400">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="relative">
+            <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-cyan-500 rounded-full blur-lg animate-pulse"></div>
+            </div>
+        </div>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-slate-200 p-4 md:p-8 font-sans relative overflow-hidden">

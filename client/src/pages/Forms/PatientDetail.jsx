@@ -11,7 +11,7 @@ import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
 const PatientDetail = ({ onBack }) => {
-      const { setIsAuth } = useAuth();
+  const { setIsAuth } = useAuth();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
     defaultValues: {
       age: "",
@@ -30,7 +30,6 @@ const PatientDetail = ({ onBack }) => {
   const onSubmit = async (data) => {
     console.log("Submitting Patient Data:", data);
     try {
-        await new Promise(r => setTimeout(r, 1000)); // Smooth Fake Delay
 
         // ACTUAL API CALL
         const res = await api.post(

@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { FaUser, FaLock, FaEnvelope, FaUserMd } from "react-icons/fa";
@@ -35,14 +34,12 @@ const Register = ({ onToggle, onDoctorSuccess, onPatientSuccess }) => {
       console.log("Register Response:", res.data);
 
       if (res.data?.success) {
-        // localStorage.setItem("token", res.data.token); // Agar cookie use kar rahe hain to comment rakhein
+        
         localStorage.setItem("role", data.role);
-
-        // ❌ YE LINE HATA DO: Iski wajah se Dashboard redirect ho raha hai
-        // setIsAuth(true);
-
-        // ✅ Redirect logic ab kaam karega kyunki AuthPage unmount nahi hoga
+        localStorage.setItem("userId", res.data.user.id);
         if (data.role === "doctor") {
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("userId", res.data.user.id);
           showToast("success", "Account created! Setting up Doctor Profile...");
           onDoctorSuccess(data);
         } else {

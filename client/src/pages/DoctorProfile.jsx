@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   FaUserMd, FaEnvelope, FaBriefcase, FaMoneyBillWave, FaClock, 
@@ -7,20 +6,15 @@ import {
   FaGlobe, FaMapMarkerAlt, FaBirthdayCake, FaVenusMars 
 } from "react-icons/fa";
 
-// Import your reusable toast components
 import {  showToast } from "../components/ui/Form"; 
 import api from "../api/axios";
 
 const DoctorProfile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // --- FETCH DATA ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        await new Promise(r => setTimeout(r, 1000)); // Fake smooth delay
-
         const res = await api.get("/user/doctorProfile");
 
         if (res.data.success) {

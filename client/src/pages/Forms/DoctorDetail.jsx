@@ -47,8 +47,6 @@ const DoctorDetail = ({ onBack }) => {
   const onSubmit = async (data) => {
     console.log("Submitting Doctor Data:", data);
     try {
-        await new Promise(r => setTimeout(r, 1000)); 
-
         const res = await api.post(
             "/user/doctorData", 
             {
